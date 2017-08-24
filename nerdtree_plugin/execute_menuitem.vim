@@ -10,6 +10,7 @@ if exists("g:loaded_nerdtree_shell_exec_menuitem")
 endif
 
 let g:loaded_nerdtree_shell_exec_menuitem = 1
+let g:loaded_nerdtree_shell_exec_menuitem#menu_shortcut = get(g:, 'loaded_nerdtree_shell_exec_menuitem#menu_shortcut', '<c-o>')
 let s:haskdeinit = system("ps -e") =~ 'kdeinit'
 let s:hasdarwin = system("uname -s") =~ 'Darwin'
 
@@ -17,8 +18,12 @@ call NERDTreeAddMenuItem({
       \ 'text': 'e(x)ecute',
       \ 'shortcut': 'x',
       \ 'callback': 'NERDTreeExecute' })
-
-function! NERDTreeExecute()
+call NERDTreeAddKeyMap({
+      \ 'key': g:loaded_nerdtree_shell_exec_menuitem#menu_shortcut,
+      \ 'callback': 'NERDTreeExecute',
+      \ 'quickhelpText': 'Open with system default app',
+      \ 'scope': 'Node' })
+function! NERDTreeExecute(...)
   let l:oldssl=&shellslash
   set noshellslash
   let treenode = g:NERDTreeFileNode.GetSelected()
@@ -31,16 +36,16 @@ function! NERDTreeExecute()
   end
 
   if has("unix") && executable("xdg-open") && !s:haskdeinit
-    exe "silent !xdg-open ".args
+    call system("xdg-open " . args . "&")
     let ret= v:shell_error
   elseif has("unix") && executable("gnome-open") && !s:haskdeinit
-    exe "silent !gnome-open ".args
+    call system("gnome-open " . args . "&")
     let ret= v:shell_error
   elseif has("unix") && executable("kde-open") && s:haskdeinit
-    exe "silent !kde-open ".args
+    call system("kde-open " . args . "&")
     let ret= v:shell_error
   elseif has("unix") && executable("open") && s:hasdarwin
-    exe "silent !open ".args
+    call system("open " . args . "&")
     let ret= v:shell_error
   elseif has("win32") || has("win64")
     exe "silent !start explorer ".shellescape(path,1)
